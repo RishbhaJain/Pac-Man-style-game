@@ -34,7 +34,7 @@ public class World {
     public World() {
         seed = SEED;
         r = new Random(seed);
-        countRooms = (int) (MINCOUNT + (MAXCOUNT-MINCOUNT) * r.nextDouble());
+        countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
         spaces = new ArrayList<>();
@@ -43,7 +43,7 @@ public class World {
     public World(long seed) {
         this.seed = seed;
         r = new Random(seed);
-        countRooms = (int) (MINCOUNT + (MAXCOUNT-MINCOUNT) * r.nextDouble());
+        countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
         spaces = new ArrayList<>();
@@ -54,10 +54,10 @@ public class World {
         public int y;
         public int width;
         public int height;
-        Rectangle (int x, int y, int width, int height) {
+        Rectangle(int x, int y, int width, int height) {
             this.x = x;
             this.y = y;
-            this. width = width;
+            this.width = width;
             this.height = height;
         }
     }
@@ -67,20 +67,20 @@ public class World {
         while (n < countRooms) {
             int x = r.nextInt(WIDTH - MAXSIZE);
             int y = r.nextInt(HEIGHT - MAXSIZE);
-            int width = (int) (r.nextDouble()*(MAXSIZE - MINSIZE) + MINSIZE);
-            int height = (int) (r.nextDouble()*(MAXSIZE - MINSIZE) + MINSIZE);
+            int width = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
+            int height = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             boolean dist = true;
             for (Rectangle room : rooms) {
-                double centerDist = (float) Math.sqrt(Math.pow(room.x - x,2) + Math.pow(room.y - y,2));
-                double minCenterDist = Math.sqrt(Math.pow((double)(room.width/2+width/2+1),2)
-                        + Math.pow((double)(room.height/2+height/2+1),2));
-                if (centerDist <= minCenterDist){
+                double centerDist = Math.sqrt(Math.pow(room.x - x, 2) + Math.pow(room.y - y, 2));
+                double minCenterDist = Math.sqrt(Math.pow((double) (room.width / 2 + width / 2 + 1), 2)
+                        + Math.pow((double) (room.height / 2 + height / 2 + 1), 2));
+                if (centerDist <= minCenterDist) {
                     dist = false;
                     break;
                 }
             }
-            if(dist) {
-                rooms.add(new Rectangle(x,y,width,height));
+            if (dist) {
+                rooms.add(new Rectangle(x, y, width, height));
                 n++;
             }
         }
