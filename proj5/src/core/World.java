@@ -23,7 +23,6 @@ public class World {
     //Global variables
     public int countRooms;
     public long seed;
-    public int[][] worldArr;
     public Random r;
     public int countSpaces;
     public List<Rectangle> rooms;
@@ -33,7 +32,6 @@ public class World {
         seed = SEED;
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
-        worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
         spaces = new ArrayList<>();
     }
@@ -42,7 +40,6 @@ public class World {
         this.seed = seed;
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
-        worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
         spaces = new ArrayList<>();
     }
