@@ -1,5 +1,6 @@
 package core;
 
+import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
 
@@ -16,16 +17,13 @@ public class World {
     private static final int MINSIZE = 4;
     private static final int MAXSIZE = 20;
 
-
-
-
     //Default seed
     private static final long SEED = 2873123;
 
     //Global variables
     public int countRooms;
-    public int[][] worldArr;
     public long seed;
+    public int[][] worldArr;
     public Random r;
     public int countSpaces;
     public List<Rectangle> rooms;
@@ -54,6 +52,7 @@ public class World {
         public int y;
         public int width;
         public int height;
+
         Rectangle(int x, int y, int width, int height) {
             this.x = x;
             this.y = y;
@@ -85,6 +84,22 @@ public class World {
             }
         }
     }
+
+    public TETile[][] fillRoomsWithTiles(TETile[][] tiles) {
+        for (Rectangle room : rooms) {
+            for (int i = room.x; i < room.x + room.width; i++) {
+                for (int j = room.y; j < room.y + room.height; j++) {
+                    if (i == room.x || i == (room.x + room.width - 1) || j == room.y || j == (room.y + room.height - 1)) {
+                        tiles[i][j] = Tileset.WALL;
+                    } else {
+                        tiles[i][j] = Tileset.FLOOR;
+                    }
+                }
+            }
+        }
+        return tiles;
+    }
+
     public void fillWithRandomTiles(TETile[][] tiles) {
         int height = tiles[0].length;
         int width = tiles.length;
@@ -109,5 +124,26 @@ public class World {
             case 1 -> Tileset.FLOWER;
             default -> Tileset.NOTHING;
         };
+    }
+
+    public static void main(String[] args) {
+        World w = new World(300);
+        w.createRooms();
+        // initialize the tile rendering engine with a window of size WIDTH x HEIGHT
+        TERenderer ter = new TERenderer();
+        ter.initialize(WIDTH, HEIGHT);
+
+        TETile[][] world = new TETile[WIDTH][HEIGHT];
+
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                world[x][y] = Tileset.NOTHING;
+            }
+        }
+
+        // initialize tiles
+        world = w.fillRoomsWithTiles(world);
+        // draws the world to the screen
+        ter.renderFrame(world);
     }
 }
