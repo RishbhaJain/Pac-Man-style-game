@@ -13,4 +13,12 @@ public class Room {
         this.width = width;
         this.height = height;
     }
+
+    public int centerRoomX() {
+        return x + width / 2;
+    }
+
+    public int centerRoomY() {
+        return y + height / 2;
+    }
 }

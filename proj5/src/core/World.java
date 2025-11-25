@@ -1,6 +1,5 @@
 package core;
 
-import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
 
@@ -10,8 +9,8 @@ import java.util.Random;
 
 public class World {
     //Constants
-    private static final int WIDTH = 100;
-    private static final int HEIGHT = 100;
+    public static final int WIDTH = 100;
+    public static final int HEIGHT = 100;
     private static final int MAXCOUNT = 30;
     private static final int MINCOUNT = 10;
     private static final int MINSIZE = 4;
@@ -24,16 +23,13 @@ public class World {
     public int countRooms;
     public long seed;
     public Random r;
-    public int countSpaces;
-    public List<Rectangle> rooms;
-    public List<Rectangle> spaces;
+    public List<Room> rooms;
 
     public World() {
         seed = SEED;
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         rooms = new ArrayList<>();
-        spaces = new ArrayList<>();
     }
 
     public World(long seed) {
@@ -41,21 +37,6 @@ public class World {
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         rooms = new ArrayList<>();
-        spaces = new ArrayList<>();
-    }
-
-    public class Rectangle {
-        public int x;
-        public int y;
-        public int width;
-        public int height;
-
-        Rectangle(int x, int y, int width, int height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-        }
     }
 
     public void createRooms() {
@@ -66,7 +47,7 @@ public class World {
             int width = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             int height = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             boolean dist = true;
-            for (Rectangle room : rooms) {
+            for (Room room : rooms) {
                 double centerDist = Math.sqrt(Math.pow(room.x - x, 2) + Math.pow(room.y - y, 2));
                 double minCenterDist = Math.sqrt(Math.pow((double) (room.width / 2 + width / 2 + 1), 2)
                         + Math.pow((double) (room.height / 2 + height / 2 + 1), 2));
@@ -76,14 +57,14 @@ public class World {
                 }
             }
             if (dist) {
-                rooms.add(new Rectangle(x, y, width, height));
+                rooms.add(new Room(x, y, width, height));
                 n++;
             }
         }
     }
 
     public TETile[][] fillRoomsWithTiles(TETile[][] tiles) {
-        for (Rectangle room : rooms) {
+        for (Room room : rooms) {
             for (int i = room.x; i < room.x + room.width; i++) {
                 for (int j = room.y; j < room.y + room.height; j++) {
                     if (i == room.x || i == (room.x + room.width - 1) || j == room.y || j == (room.y + room.height - 1)) {
@@ -123,24 +104,85 @@ public class World {
         };
     }
 
-    public static void main(String[] args) {
-        World w = new World(300);
-        w.createRooms();
-        // initialize the tile rendering engine with a window of size WIDTH x HEIGHT
-        TERenderer ter = new TERenderer();
-        ter.initialize(WIDTH, HEIGHT);
+    public TETile[][] generateWorld() {
 
-        TETile[][] world = new TETile[WIDTH][HEIGHT];
+        createRooms();
 
+        TETile[][] tiles = new TETile[WIDTH][HEIGHT];
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
-                world[x][y] = Tileset.NOTHING;
+                tiles[x][y] = Tileset.NOTHING;
             }
         }
 
-        // initialize tiles
-        world = w.fillRoomsWithTiles(world);
-        // draws the world to the screen
-        ter.renderFrame(world);
+        // Draws rooms inside empty grid
+        fillRoomsWithTiles(tiles);
+
+        HallwayGenerator hallwayGen = new HallwayGenerator();
+        List<Edge> edges = hallwayGen.generateEdges(rooms);
+        List<Edge> mst = hallwayGen.findMST(edges, rooms.size());
+
+        for (Edge edge : mst) {
+            connectHallway(tiles, rooms.get(edge.roomPrev), rooms.get(edge.roomNext));
+        }
+
+        return tiles;
     }
+
+    private void connectHallway(TETile[][] tiles, Room roomPrev, Room roomNext) {
+
+        // Door tiles at room centers
+        tiles[roomPrev.centerRoomX()][roomPrev.centerRoomY()] = Tileset.FLOOR;
+        tiles[roomNext.centerRoomX()][roomNext.centerRoomY()] = Tileset.FLOOR;
+
+        // Computes the xy position limits for room centers
+        int x1 = Math.min(roomPrev.centerRoomX(), roomNext.centerRoomX());
+        int x2 = Math.max(roomPrev.centerRoomX(), roomNext.centerRoomX());
+        int y1 = Math.min(roomPrev.centerRoomY(), roomNext.centerRoomY());
+        int y2 = Math.max(roomPrev.centerRoomY(), roomNext.centerRoomY());
+
+        // Randomly go either frist in x direction then y, or other way around
+        if (r.nextBoolean()) {
+
+            for (int x = x1; x <= x2; x++) {
+                createHallway(tiles, x, roomPrev.centerRoomY());
+            }
+
+            for (int y = y1; y <= y2; y++) {
+                createHallway(tiles, roomNext.centerRoomX(), y);
+            }
+
+        } else {
+
+            for (int y = y1; y <= y2; y++) {
+                createHallway(tiles, roomPrev.centerRoomX(), y);
+            }
+
+            for (int x = x1; x <= x2; x++) {
+                createHallway(tiles, x, roomNext.centerRoomY());
+            }
+        }
+    }
+
+    private void createHallway(TETile[][] tiles, int x, int y) {
+
+        // checks out of bound
+        if (x <= 0 || x >= WIDTH-1 || y <= 0 || y >= HEIGHT-1) return;
+
+        tiles[x][y] = Tileset.FLOOR;
+
+        // Design world around hallway
+        if (tiles[x][y + 1] == Tileset.NOTHING)
+            tiles[x][y + 1] = Tileset.WALL;
+
+        if (tiles[x][y - 1] == Tileset.NOTHING)
+            tiles[x][y - 1] = Tileset.WALL;
+
+        if (tiles[x + 1][y] == Tileset.NOTHING)
+            tiles[x + 1][y] = Tileset.WALL;
+
+        if (tiles[x - 1][y] == Tileset.NOTHING)
+            tiles[x - 1][y] = Tileset.WALL;
+    }
+
 }
