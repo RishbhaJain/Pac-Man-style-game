@@ -1,5 +1,6 @@
 package core;
 
+import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
 
@@ -16,37 +17,45 @@ public class World {
     private static final int MINSIZE = 4;
     private static final int MAXSIZE = 20;
 
-
-
-
     //Default seed
     private static final long SEED = 2873123;
 
     //Global variables
     public int countRooms;
-    public int[][] worldArr;
     public long seed;
     public Random r;
     public int countSpaces;
-    public List<Room> rooms;
-    public List<Room> spaces;
+    public List<Rectangle> rooms;
+    public List<Rectangle> spaces;
 
     public World() {
         seed = SEED;
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
-        worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
-        spaces = new ArrayList<>(); //We dont need spaces right? since we re not Binary Splitting
+        spaces = new ArrayList<>();
     }
 
     public World(long seed) {
         this.seed = seed;
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
-        worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
-        spaces = new ArrayList<>(); //We dont need spaces right? since we re not Binary Splitting
+        spaces = new ArrayList<>();
+    }
+
+    public class Rectangle {
+        public int x;
+        public int y;
+        public int width;
+        public int height;
+
+        Rectangle(int x, int y, int width, int height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
     }
 
     public void createRooms() {
@@ -57,7 +66,7 @@ public class World {
             int width = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             int height = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             boolean dist = true;
-            for (Room room : rooms) {
+            for (Rectangle room : rooms) {
                 double centerDist = Math.sqrt(Math.pow(room.x - x, 2) + Math.pow(room.y - y, 2));
                 double minCenterDist = Math.sqrt(Math.pow((double) (room.width / 2 + width / 2 + 1), 2)
                         + Math.pow((double) (room.height / 2 + height / 2 + 1), 2));
@@ -67,11 +76,27 @@ public class World {
                 }
             }
             if (dist) {
-                rooms.add(new Room(x, y, width, height));
+                rooms.add(new Rectangle(x, y, width, height));
                 n++;
             }
         }
     }
+
+    public TETile[][] fillRoomsWithTiles(TETile[][] tiles) {
+        for (Rectangle room : rooms) {
+            for (int i = room.x; i < room.x + room.width; i++) {
+                for (int j = room.y; j < room.y + room.height; j++) {
+                    if (i == room.x || i == (room.x + room.width - 1) || j == room.y || j == (room.y + room.height - 1)) {
+                        tiles[i][j] = Tileset.WALL;
+                    } else {
+                        tiles[i][j] = Tileset.FLOOR;
+                    }
+                }
+            }
+        }
+        return tiles;
+    }
+
     public void fillWithRandomTiles(TETile[][] tiles) {
         int height = tiles[0].length;
         int width = tiles.length;
@@ -96,5 +121,26 @@ public class World {
             case 1 -> Tileset.FLOWER;
             default -> Tileset.NOTHING;
         };
+    }
+
+    public static void main(String[] args) {
+        World w = new World(300);
+        w.createRooms();
+        // initialize the tile rendering engine with a window of size WIDTH x HEIGHT
+        TERenderer ter = new TERenderer();
+        ter.initialize(WIDTH, HEIGHT);
+
+        TETile[][] world = new TETile[WIDTH][HEIGHT];
+
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                world[x][y] = Tileset.NOTHING;
+            }
+        }
+
+        // initialize tiles
+        world = w.fillRoomsWithTiles(world);
+        // draws the world to the screen
+        ter.renderFrame(world);
     }
 }
