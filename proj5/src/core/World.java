@@ -28,8 +28,8 @@ public class World {
     public long seed;
     public Random r;
     public int countSpaces;
-    public List<Rectangle> rooms;
-    public List<Rectangle> spaces;
+    public List<Room> rooms;
+    public List<Room> spaces;
 
     public World() {
         seed = SEED;
@@ -37,7 +37,7 @@ public class World {
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
-        spaces = new ArrayList<>();
+        spaces = new ArrayList<>(); //We dont need spaces right? since we re not Binary Splitting
     }
 
     public World(long seed) {
@@ -46,20 +46,7 @@ public class World {
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         worldArr = new int[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
-        spaces = new ArrayList<>();
-    }
-
-    public class Rectangle {
-        public int x;
-        public int y;
-        public int width;
-        public int height;
-        Rectangle(int x, int y, int width, int height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-        }
+        spaces = new ArrayList<>(); //We dont need spaces right? since we re not Binary Splitting
     }
 
     public void createRooms() {
@@ -70,7 +57,7 @@ public class World {
             int width = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             int height = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             boolean dist = true;
-            for (Rectangle room : rooms) {
+            for (Room room : rooms) {
                 double centerDist = Math.sqrt(Math.pow(room.x - x, 2) + Math.pow(room.y - y, 2));
                 double minCenterDist = Math.sqrt(Math.pow((double) (room.width / 2 + width / 2 + 1), 2)
                         + Math.pow((double) (room.height / 2 + height / 2 + 1), 2));
@@ -80,7 +67,7 @@ public class World {
                 }
             }
             if (dist) {
-                rooms.add(new Rectangle(x, y, width, height));
+                rooms.add(new Room(x, y, width, height));
                 n++;
             }
         }

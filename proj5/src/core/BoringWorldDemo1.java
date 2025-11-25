@@ -1,6 +1,5 @@
-package demo;
+package core;
 
-import core.World;
 import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
@@ -29,7 +28,7 @@ public class BoringWorldDemo1 {
         }
         System.out.println("#");
 
-        for (World.Rectangle room : w.rooms) {
+        for (Room room : w.rooms) {
             System.out.println(room.x + " " + room.y + " " + room.width + " " + room.height);
             for (int x = room.x; x < (room.x + room.width); x++) {
                 for (int y = room.y; y < (room.y + room.height); y++) {
