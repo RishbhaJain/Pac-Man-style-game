@@ -3,6 +3,7 @@ package core;
 import edu.princeton.cs.algs4.StdDraw;
 import tileengine.TERenderer;
 import tileengine.TETile;
+import tileengine.Tileset;
 
 import java.awt.*;
 
@@ -10,7 +11,6 @@ public class Game {
 
     private static final Font TITLE = new Font("Monaco", Font.BOLD, 50);
     private static final Font MENUTEXT = new Font("Monaco", Font.PLAIN, 40);
-    private static final Font ENV = new Font("Monaco", Font.PLAIN, 30);
     private static final Font MENUSEED = new Font("Monaco", Font.PLAIN, 32);
 
     public void createMenu() {
@@ -22,12 +22,12 @@ public class Game {
         StdDraw.setPenColor(Color.WHITE);
 
         StdDraw.setFont(TITLE);
-        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT, "Save the Josh");
+        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT - 10, "Save the Josh");
 
         StdDraw.setFont(MENUTEXT);
-        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 2, "New Game (N)");
+        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 4, "New Game (N)");
         StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, "Load Game (L)");
-        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 2, "Quit (Q)");
+        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 4, "Quit (Q)");
 
         StdDraw.show();
 
@@ -39,8 +39,8 @@ public class Game {
 
                     StdDraw.clear(Color.BLACK);
                     StdDraw.setPenColor(Color.WHITE);
-                    StdDraw.setFont(ENV);
-                    StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 5, "Enter your game seed:");
+                    StdDraw.setFont(TITLE);
+                    StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 10, "Enter your game seed:");
                     StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, "Press S when done");
                     StdDraw.show();
 
@@ -52,7 +52,6 @@ public class Game {
                         char c = Character.toUpperCase(StdDraw.nextKeyTyped());
 
                         if (c == 'S') {
-                            input = false;
                             break;
                         }
 
@@ -64,12 +63,12 @@ public class Game {
                         StdDraw.setPenColor(Color.WHITE);
 
                         StdDraw.setFont(TITLE);
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT - 3, "Save the Josh");
+                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT - 10, "Save the Josh");
 
                         StdDraw.setFont(MENUSEED);
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 2, "Enter your game seed:");
+                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 4, "Enter your game seed:");
                         StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, seedStr.toString());
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 2, "Press S when done");
+                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 4, "Press S when done");
 
                         StdDraw.show();
                     }
@@ -79,9 +78,16 @@ public class Game {
                         seed = Long.parseLong(seedStr.toString());
                     }
 
-                    World w = new World(seed);
-                    TETile[][] worldTiles = w.generateWorld();
+                    World world = new World(seed);
+                    TETile[][] worldTiles = world.generateWorld();
+
+                    Room roomToSpawn = world.rooms.get(0);
+
+                    User user = new User(roomToSpawn.centerRoomX(), roomToSpawn.centerRoomY());
+                    worldTiles[roomToSpawn.centerRoomX()][roomToSpawn.centerRoomY()] = Tileset.AVATAR;
+
                     ter.renderFrame(worldTiles);
+                    interactivity(user, worldTiles, ter);
                     return;
 
                 }
@@ -101,5 +107,32 @@ public class Game {
             }
         }
     }
-}
 
+    public void interactivity(User user, TETile[][] world, TERenderer ter) {
+
+        boolean input = true;
+
+        while (input) {
+            if (!StdDraw.hasNextKeyTyped()) continue;
+
+            char c = Character.toUpperCase(StdDraw.nextKeyTyped());
+
+            int x = user.x;
+            int y = user.y;
+
+            if (c == 'Q') return;
+            if (c == 'W') y++;
+            if (c == 'S') y--;
+            if (c == 'A') x--;
+            if (c == 'D') x++;
+
+
+            if (world[x][y] == Tileset.WALL) {
+                continue;
+            }
+
+            user.moveAroundMap(x, y, world);
+            ter.renderFrame(world);
+        }
+    }
+}
