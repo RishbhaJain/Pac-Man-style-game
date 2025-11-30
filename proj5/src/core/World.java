@@ -169,6 +169,8 @@ public class World {
         // checks out of bound
         if (x <= 0 || x >= WIDTH-1 || y <= 0 || y >= HEIGHT-1) return;
 
+        if (tiles[x][y] == Tileset.FLOOR) return;
+
         tiles[x][y] = Tileset.FLOOR;
 
         // Design world around hallway
