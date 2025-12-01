@@ -6,12 +6,10 @@ import tileengine.Tileset;
 public class Enemy {
     public int x;
     public int y;
-    public int health;
 
     public Enemy(int x, int y) {
         this.x = x;
         this.y = y;
-        this.health = 1;
     }
 
     public void moveAroundMap(TETile[][] world, World w) {

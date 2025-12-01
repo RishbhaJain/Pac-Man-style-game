@@ -1,11 +1,13 @@
 package core;
 
 import edu.princeton.cs.algs4.StdDraw;
+import org.apache.pdfbox.contentstream.operator.state.Save;
 import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
 
 import java.awt.*;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 public class Game {
@@ -15,6 +17,11 @@ public class Game {
     private static final Font MENUSEED = new Font("Monaco", Font.PLAIN, 32);
     private static final Integer MAXCOLLECTIBLES = 10;
     private static final Integer MAXENEMIES = 10;
+    private static final Integer HUDHEIGHT = 5;
+
+    private static final Integer XOFFSET = 1;
+    private static final Integer YOFFSET = 2;
+
     Enemy[] enemies;
 
     private static final Integer MAXHEALTH = 10;
@@ -23,12 +30,15 @@ public class Game {
     World world;
     TETile[][] worldTiles;
     private static final long ENEMY_UPDATE_INTERVAL = 500;  // Enemy moves every 500ms
+    User user;
+    TERenderer ter;
 
 
 
-    public void createMenu() {
+    public void createMenu() throws FileNotFoundException {
         TERenderer ter = new TERenderer();
-        ter.initialize(World.WIDTH, World.HEIGHT);
+        ter.initialize(World.WIDTH, World.HEIGHT + HUDHEIGHT);
+        this.ter = ter;
 
         StdDraw.enableDoubleBuffering();
         StdDraw.clear(Color.BLACK);
@@ -91,6 +101,7 @@ public class Game {
                         seed = Long.parseLong(seedStr.toString());
                     }
 
+                    //Create world
                     World world = new World(seed);
                     this.world = world;
                     TETile[][] worldTiles = world.generateWorld();
@@ -136,6 +147,7 @@ public class Game {
 
 
                     ter.renderFrame(worldTiles);
+                    drawHUD(user, ter);
                     interactivity(user, ter);
                     return;
 
@@ -143,11 +155,12 @@ public class Game {
 
                 // Still needs to be implemented in Task 4 @Rishbha
                 else if (chr == 'L') {
-                    StdDraw.clear(Color.BLACK);
-                    StdDraw.setPenColor(Color.WHITE);
-                    StdDraw.setFont(MENUTEXT);
-                    StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, "Load Game");
-                    StdDraw.show();
+//                    StdDraw.clear(Color.BLACK);
+//                    StdDraw.setPenColor(Color.WHITE);
+//                    StdDraw.setFont(MENUTEXT);
+//                    StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, "Load Game");
+//                    StdDraw.show();
+                    createWorld(SaveLoad.load());
                 }
 
                 else if (chr == 'Q') {
@@ -163,7 +176,7 @@ public class Game {
         }
     }
 
-    public void interactivity(User user, TERenderer ter) {
+    public void interactivity(User user, TERenderer ter) throws FileNotFoundException {
         long lastEnemyUpdate = System.currentTimeMillis();
         while (true) {
             long currentTime = System.currentTimeMillis();
@@ -172,6 +185,7 @@ public class Game {
                 updateEnemies();
                 lastEnemyUpdate = currentTime;
                 ter.renderFrame(worldTiles);
+                drawHUD(user, ter);
             }
 
             if (!StdDraw.hasNextKeyTyped()) {
@@ -183,7 +197,10 @@ public class Game {
             int x = user.x;
             int y = user.y;
 
-            if (c == 'Q') return;
+            if (c == 'Q') {
+                SaveLoad.save(new GameState(user, enemies, collectibles, world.seed));
+                System.exit(0);
+            }
             if (c == 'W') y++;
             if (c == 'S') y--;
             if (c == 'A') x--;
@@ -213,6 +230,37 @@ public class Game {
             user.moveAroundMap(x, y, worldTiles);
 
             ter.renderFrame(worldTiles);
+            drawHUD(user, ter);
         }
+    }
+    public void drawHUD(User user, TERenderer ter) {
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.textLeft(0, World.HEIGHT,"Health: " + user.health);
+        StdDraw.show();
+    }
+
+    public void createWorld(GameState gameState) throws FileNotFoundException {
+        World world = new World(gameState.seed);
+        this.world = world;
+        TETile[][] worldTiles = world.generateWorld();
+        this.worldTiles = worldTiles;
+
+        this.user = gameState.user;
+        this.worldTiles[user.x][user.y] = Tileset.AVATAR;
+
+        // Generate Collectibles
+        this.collectibles = gameState.collectibles;
+
+        for (Collectible coll : collectibles.values() ) {
+            worldTiles[coll.x][coll.y] = Tileset.FLOWER;
+        }
+        // Generate enemies
+        this.enemies = gameState.enemies;
+        for (Enemy en :enemies ) {
+            worldTiles[en.x][en.y] = Tileset.ENEMY;
+        }
+        ter.renderFrame(worldTiles);
+        drawHUD(user, ter);
+        interactivity(user, ter);
     }
 }

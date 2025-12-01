@@ -13,6 +13,11 @@ public class User {
         this.y = y;
         this.health = 1;
     }
+    public User(int x, int y, int health) {
+        this.x = x;
+        this.y = y;
+        this.health = health;
+    }
 
     public void moveAroundMap(int xCoord, int yCoord, TETile[][] world) {
         world[x][y] = Tileset.FLOOR;
