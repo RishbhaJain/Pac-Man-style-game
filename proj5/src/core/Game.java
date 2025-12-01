@@ -6,12 +6,25 @@ import tileengine.TETile;
 import tileengine.Tileset;
 
 import java.awt.*;
+import java.util.HashMap;
 
 public class Game {
 
     private static final Font TITLE = new Font("Monaco", Font.BOLD, 50);
     private static final Font MENUTEXT = new Font("Monaco", Font.PLAIN, 40);
     private static final Font MENUSEED = new Font("Monaco", Font.PLAIN, 32);
+    private static final Integer MAXCOLLECTIBLES = 10;
+    private static final Integer MAXENEMIES = 10;
+    Enemy[] enemies;
+
+    private static final Integer MAXHEALTH = 10;
+    HashMap<Point,Collectible> collectibles;
+    private int countEnemies;
+    World world;
+    TETile[][] worldTiles;
+    private static final long ENEMY_UPDATE_INTERVAL = 500;  // Enemy moves every 500ms
+
+
 
     public void createMenu() {
         TERenderer ter = new TERenderer();
@@ -79,15 +92,51 @@ public class Game {
                     }
 
                     World world = new World(seed);
+                    this.world = world;
                     TETile[][] worldTiles = world.generateWorld();
+                    this.worldTiles = worldTiles;
 
-                    Room roomToSpawn = world.rooms.get(0);
-
+                    Room roomToSpawn = world.getRandomRoom();
                     User user = new User(roomToSpawn.centerRoomX(), roomToSpawn.centerRoomY());
                     worldTiles[roomToSpawn.centerRoomX()][roomToSpawn.centerRoomY()] = Tileset.AVATAR;
 
+                    // Generate Collectibles
+                    int countCollectibles = 1 + world.r.nextInt(MAXCOLLECTIBLES-1);
+                    Room roomToCollect;
+                    collectibles = new HashMap<>();
+                    for (int i = 0; i < countCollectibles; i ++ ) {
+                        //make sure collectible and user don't overlap
+                        while (true) {
+                            roomToCollect = world.getRandomRoom();
+                            if (roomToCollect.equals(roomToSpawn)) {
+                                continue;
+                            }
+                            break;
+                        }
+                        collectibles.put(new Point(roomToCollect.centerRoomX(), roomToCollect.centerRoomY()), new Collectible(roomToCollect.centerRoomX(), roomToCollect.centerRoomY(),1 + world.r.nextInt(MAXHEALTH - 1)));
+                        worldTiles[roomToCollect.centerRoomX()][roomToCollect.centerRoomY()] = Tileset.FLOWER;
+                    }
+
+                    // Generate enemies
+                    Room roomToEnemy;
+                    countEnemies = 1 + world.r.nextInt(MAXENEMIES-1);
+                    enemies = new Enemy[countEnemies];
+                    for (int i = 0; i < countEnemies; i ++ ) {
+                        //Make sure enemy and user don't start at the same position
+                        while (true) {
+                            roomToEnemy = world.getRandomRoom();
+                            if (roomToEnemy.equals(roomToSpawn)) {
+                                continue;
+                            }
+                            break;
+                        }
+                        enemies[i] = new Enemy(roomToEnemy.centerRoomX(), roomToEnemy.centerRoomY());
+                        worldTiles[roomToEnemy.centerRoomX()][roomToEnemy.centerRoomY()] = Tileset.ENEMY;
+                    }
+
+
                     ter.renderFrame(worldTiles);
-                    interactivity(user, worldTiles, ter);
+                    interactivity(user, ter);
                     return;
 
                 }
@@ -108,12 +157,26 @@ public class Game {
         }
     }
 
-    public void interactivity(User user, TETile[][] world, TERenderer ter) {
+    public void updateEnemies() {
+        for (int i = 0; i < countEnemies; i++) {
+            enemies[i].moveAroundMap(worldTiles,world);
+        }
+    }
 
-        boolean input = true;
+    public void interactivity(User user, TERenderer ter) {
+        long lastEnemyUpdate = System.currentTimeMillis();
+        while (true) {
+            long currentTime = System.currentTimeMillis();
 
-        while (input) {
-            if (!StdDraw.hasNextKeyTyped()) continue;
+            if (currentTime - lastEnemyUpdate >= ENEMY_UPDATE_INTERVAL) {
+                updateEnemies();
+                lastEnemyUpdate = currentTime;
+                ter.renderFrame(worldTiles);
+            }
+
+            if (!StdDraw.hasNextKeyTyped()) {
+                continue;
+            }
 
             char c = Character.toUpperCase(StdDraw.nextKeyTyped());
 
@@ -126,13 +189,30 @@ public class Game {
             if (c == 'A') x--;
             if (c == 'D') x++;
 
+            Point playerPos = new Point(x, y);
 
-            if (world[x][y] == Tileset.WALL) {
+
+            if (worldTiles[x][y] == Tileset.WALL) {
                 continue;
             }
 
-            user.moveAroundMap(x, y, world);
-            ter.renderFrame(world);
+            if (worldTiles[x][y] == Tileset.ENEMY) {
+                user.health -= 1;
+                if (user.health == 0) {
+                    System.exit(0);//check this
+                }
+            }
+
+            if (worldTiles[x][y] == Tileset.FLOWER) {
+                Collectible currColl = collectibles.get(playerPos);
+                user.health += currColl.health;
+                collectibles.remove(playerPos);
+                worldTiles[x][y] = Tileset.FLOOR;
+            }
+
+            user.moveAroundMap(x, y, worldTiles);
+
+            ter.renderFrame(worldTiles);
         }
     }
 }

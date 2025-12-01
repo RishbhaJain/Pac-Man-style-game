@@ -10,7 +10,7 @@ import java.util.Random;
 public class World {
     //Constants
     public static final int WIDTH = 100;
-    public static final int HEIGHT = 100;
+    public static final int HEIGHT = 60;
     private static final int MAXCOUNT = 30;
     private static final int MINCOUNT = 10;
     private static final int MINSIZE = 4;
@@ -37,6 +37,10 @@ public class World {
         r = new Random(seed);
         countRooms = (int) (MINCOUNT + (MAXCOUNT - MINCOUNT) * r.nextDouble());
         rooms = new ArrayList<>();
+    }
+
+    public Room getRandomRoom() {
+        return rooms.get(1 + r.nextInt(countRooms-1));
     }
 
     public void createRooms() {
