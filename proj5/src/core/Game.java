@@ -19,12 +19,10 @@ public class Game {
     private static final Integer MAXCOLLECTIBLES = 10;
     private static final Integer MAXENEMIES = 10;
     private static final Integer HUDHEIGHT = 5;
-
     private static final Integer XOFFSET = 1;
     private static final Integer YOFFSET = 2;
 
     Enemy[] enemies;
-
     private static final Integer MAXHEALTH = 10;
     HashMap<Point,Collectible> collectibles;
     private int countEnemies;
@@ -33,8 +31,6 @@ public class Game {
     private static final long ENEMY_UPDATE_INTERVAL = 500;  // Enemy moves every 500ms
     User user;
     TERenderer ter;
-
-
 
     public void createMenu() throws FileNotFoundException {
         GameAudio.playMenuMusic();
@@ -207,7 +203,12 @@ public class Game {
             int y = user.y;
 
             if (c == 'Q' && lastChar == ':') {
-                SaveLoad.save(new GameState(user, enemies, collectibles, world.seed));
+                SaveLoad.save(new GameState(
+                        user,
+                        enemies,
+                        collectibles,
+                        world.seed
+                ));
                 System.exit(0);
             }
             if (c == 'W') {
@@ -280,13 +281,15 @@ public class Game {
     }
 
     public void createWorld(GameState gameState) throws FileNotFoundException {
-        World world = new World(gameState.seed);
-        this.world = world;
-        TETile[][] worldTiles = world.generateWorld();
-        this.worldTiles = worldTiles;
+        this.world = new World(gameState.seed);
+        this.worldTiles = world.generateWorld();
 
-        this.user = gameState.user;
-        this.worldTiles[user.x][user.y] = Tileset.AVATAR;
+        this.user = new User(
+                gameState.user.x,
+                gameState.user.y,
+                gameState.user.health
+        );
+        worldTiles[user.x][user.y] = Tileset.AVATAR;
 
         // Generate Collectibles
         this.collectibles = gameState.collectibles;

@@ -17,7 +17,7 @@ public class SaveLoad {
     public static void save(GameState gameState) throws FileNotFoundException {
         Long seed = gameState.seed;
         HashMap<Point, Collectible> collectible = gameState.collectibles;
-        Enemy[] enemies = gameState.enemies;;
+        Enemy[] enemies = gameState.enemies;
         User user = gameState.user;
         PrintWriter out = new PrintWriter(filename);
         out.println(seed);
@@ -43,26 +43,24 @@ public class SaveLoad {
         int y = Integer.parseInt(parts[1]);
         int health = Integer.parseInt(parts[2]);
 
-        User user = new User(x,y,health);
+        User user = new User(x, y, health);
         int countEnemies = Integer.parseInt(in.readLine());
         Enemy[] enemies = new Enemy[countEnemies];
-        for (int i = 0; i < countEnemies; i ++ ) {
+        for (int i = 0; i < countEnemies; i++) {
             parts = in.readLine().split(",");
             x = Integer.parseInt(parts[0]);
             y = Integer.parseInt(parts[1]);
-            enemies[i] = new Enemy(x,y);
+            enemies[i] = new Enemy(x, y);
         }
-        HashMap<Point,Collectible> collectibles = new HashMap<>();
+        HashMap<Point, Collectible> collectibles = new HashMap<>();
         int countCollectibles = Integer.parseInt(in.readLine());
-        for (int i = 0; i < countCollectibles; i ++ ) {
+        for (int i = 0; i < countCollectibles; i++) {
             parts = in.readLine().split(",");
             x = Integer.parseInt(parts[0]);
             y = Integer.parseInt(parts[1]);
             health = Integer.parseInt(parts[2]);
-            collectibles.put(new Point(x,y), new Collectible(x,y,health));
+            collectibles.put(new Point(x, y), new Collectible(x, y, health));
         }
         return new GameState(user, enemies, collectibles, seed);
     }
-
-
 }

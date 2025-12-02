@@ -17,7 +17,6 @@ public class World {
     private static final int MAXSIZE = 20;
     private static final int WALLWIDTH = 1;
 
-
     //Default seed
     private static final long SEED = 2873123;
 
@@ -42,7 +41,7 @@ public class World {
     }
 
     public Room getRandomRoom() {
-        return rooms.get(1 + r.nextInt(countRooms-1));
+        return rooms.get(1 + r.nextInt(countRooms - 1));
     }
 
     public void createRooms() {
@@ -111,7 +110,6 @@ public class World {
     }
 
     public TETile[][] generateWorld() {
-
         createRooms();
 
         TETile[][] tiles = new TETile[WIDTH][HEIGHT];
@@ -136,7 +134,6 @@ public class World {
     }
 
     private void connectHallway(TETile[][] tiles, Room roomPrev, Room roomNext) {
-
         // Door tiles at room centers
         tiles[roomPrev.centerRoomX()][roomPrev.centerRoomY()] = Tileset.FLOOR;
         tiles[roomNext.centerRoomX()][roomNext.centerRoomY()] = Tileset.FLOOR;
@@ -149,7 +146,6 @@ public class World {
 
         // Randomly go either frist in x direction then y, or other way around
         if (r.nextBoolean()) {
-
             for (int x = x1; x <= x2; x++) {
                 createHallway(tiles, x, roomPrev.centerRoomY());
             }
@@ -157,9 +153,7 @@ public class World {
             for (int y = y1; y <= y2; y++) {
                 createHallway(tiles, roomNext.centerRoomX(), y);
             }
-
         } else {
-
             for (int y = y1; y <= y2; y++) {
                 createHallway(tiles, roomPrev.centerRoomX(), y);
             }
@@ -171,26 +165,32 @@ public class World {
     }
 
     private void createHallway(TETile[][] tiles, int x, int y) {
-
         // checks out of bound
-        if (x <= 0 || x >= WIDTH-1 || y <= 0 || y >= HEIGHT-1) return;
+        if (x <= 0 || x >= WIDTH - 1 || y <= 0 || y >= HEIGHT - 1) {
+            return;
+        }
 
-        if (tiles[x][y] == Tileset.FLOOR) return;
+        if (tiles[x][y] == Tileset.FLOOR) {
+            return;
+        }
 
         tiles[x][y] = Tileset.FLOOR;
 
         // Design world around hallway
-        if (tiles[x][y + 1] == Tileset.NOTHING)
+        if (tiles[x][y + 1] == Tileset.NOTHING) {
             tiles[x][y + 1] = Tileset.WALL;
+        }
 
-        if (tiles[x][y - 1] == Tileset.NOTHING)
+        if (tiles[x][y - 1] == Tileset.NOTHING) {
             tiles[x][y - 1] = Tileset.WALL;
+        }
 
-        if (tiles[x + 1][y] == Tileset.NOTHING)
+        if (tiles[x + 1][y] == Tileset.NOTHING) {
             tiles[x + 1][y] = Tileset.WALL;
+        }
 
-        if (tiles[x - 1][y] == Tileset.NOTHING)
+        if (tiles[x - 1][y] == Tileset.NOTHING) {
             tiles[x - 1][y] = Tileset.WALL;
+        }
     }
-
 }

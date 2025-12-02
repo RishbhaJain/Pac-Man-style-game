@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.Collections;
 
 public class HallwayGenerator {
-
     public List<Edge> generateEdges(List<Room> rooms) {
-
         List<Edge> edges = new ArrayList<>();
         int n = rooms.size();
 
@@ -44,4 +42,3 @@ public class HallwayGenerator {
         return Math.abs(x1 - x2) + Math.abs(y1 - y2);
     }
 }
-

@@ -1,7 +1,6 @@
 package core;
 
 public class Edge implements Comparable<Edge> {
-
     public int roomPrev;
     public int roomNext;
     public int weight;

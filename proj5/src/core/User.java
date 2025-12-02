@@ -25,6 +25,5 @@ public class User {
         y = yCoord;
         world[x][y] = Tileset.AVATAR;
     }
-
 }
 

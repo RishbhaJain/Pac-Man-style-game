@@ -1,7 +1,6 @@
 package core;
 
 public class Room {
-
     public int x;
     public int y;
     public int width;

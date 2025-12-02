@@ -1,8 +1,5 @@
 package core;
 
-import tileengine.TETile;
-import tileengine.Tileset;
-
 public class Collectible {
     public int x;
     public int y;

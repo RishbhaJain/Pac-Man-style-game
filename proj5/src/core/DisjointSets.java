@@ -1,7 +1,6 @@
 package core;
 
 public class DisjointSets {
-
     private final int[] parent;
 
     public DisjointSets(int size) {

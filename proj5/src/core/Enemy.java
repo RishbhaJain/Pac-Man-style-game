@@ -27,6 +27,3 @@ public class Enemy {
         world[x][y] = Tileset.ENEMY;
     }
 }
-
-
-
