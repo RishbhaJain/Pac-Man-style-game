@@ -195,6 +195,9 @@ public class Game {
             }
 
             if (!StdDraw.hasNextKeyTyped()) {
+                ter.renderFrame(worldTiles);
+                drawHUD(user, ter);
+                StdDraw.pause(10);
                 continue;
             }
 
@@ -256,8 +259,23 @@ public class Game {
         }
     }
     public void drawHUD(User user, TERenderer ter) {
+        StdDraw.setPenColor(Color.BLACK);
+        StdDraw.filledRectangle(World.WIDTH / 2.0, World.HEIGHT - 0.5,
+                World.WIDTH / 2.0, 2);
+
+        int mouseX = (int) StdDraw.mouseX();
+        int mouseY = (int) StdDraw.mouseY();
+
+        String desc = "nothing";
+        if (mouseX >= 0 && mouseX < World.WIDTH && mouseY >= 0 && mouseY < World.HEIGHT) {
+            desc = worldTiles[mouseX][mouseY].description();
+        }
+
+
         StdDraw.setPenColor(Color.WHITE);
-        StdDraw.textLeft(0, World.HEIGHT,"Health: " + user.health);
+        StdDraw.textLeft(1, World.HEIGHT - 0.5, "Health: " + user.health);
+        StdDraw.textLeft(20, World.HEIGHT - 0.5, "Tile: " + desc);
+
         StdDraw.show();
     }
 
