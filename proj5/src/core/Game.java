@@ -1,8 +1,6 @@
 package core;
 
 import edu.princeton.cs.algs4.StdDraw;
-import org.apache.pdfbox.contentstream.operator.state.Save;
-import edu.princeton.cs.algs4.StdAudio;
 import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
@@ -150,7 +148,7 @@ public class Game {
                         worldTiles[roomToEnemy.centerRoomX()][roomToEnemy.centerRoomY()] = Tileset.ENEMY;
                     }
 
-
+                    ter.resetFont();
                     ter.renderFrame(worldTiles);
                     drawHUD(user, ter);
                     interactivity(user, ter);
@@ -253,6 +251,7 @@ public class Game {
 
             user.moveAroundMap(x, y, worldTiles);
 
+            ter.resetFont();
             ter.renderFrame(worldTiles);
             drawHUD(user, ter);
 
@@ -303,6 +302,7 @@ public class Game {
         for (Enemy en :enemies ) {
             worldTiles[en.x][en.y] = Tileset.ENEMY;
         }
+        ter.resetFont();
         ter.renderFrame(worldTiles);
         drawHUD(user, ter);
         interactivity(user, ter);
