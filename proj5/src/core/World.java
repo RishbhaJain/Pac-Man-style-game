@@ -9,12 +9,14 @@ import java.util.Random;
 
 public class World {
     //Constants
-    public static final int WIDTH = 100;
+    public static final int WIDTH = 150;
     public static final int HEIGHT = 60;
     private static final int MAXCOUNT = 30;
     private static final int MINCOUNT = 10;
     private static final int MINSIZE = 4;
     private static final int MAXSIZE = 20;
+    private static final int WALLWIDTH = 1;
+
 
     //Default seed
     private static final long SEED = 2873123;
@@ -46,8 +48,8 @@ public class World {
     public void createRooms() {
         int n = 0;
         while (n < countRooms) {
-            int x = r.nextInt(WIDTH - MAXSIZE);
-            int y = r.nextInt(HEIGHT - MAXSIZE);
+            int x = WALLWIDTH + r.nextInt(WIDTH - MAXSIZE - WALLWIDTH);
+            int y = WALLWIDTH + r.nextInt(HEIGHT - MAXSIZE - WALLWIDTH);
             int width = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             int height = (int) (r.nextDouble() * (MAXSIZE - MINSIZE) + MINSIZE);
             boolean dist = true;

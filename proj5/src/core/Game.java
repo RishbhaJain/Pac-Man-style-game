@@ -2,6 +2,7 @@ package core;
 
 import edu.princeton.cs.algs4.StdDraw;
 import org.apache.pdfbox.contentstream.operator.state.Save;
+import edu.princeton.cs.algs4.StdAudio;
 import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
@@ -36,6 +37,7 @@ public class Game {
 
 
     public void createMenu() throws FileNotFoundException {
+        GameAudio.playMenuMusic();
         TERenderer ter = new TERenderer();
         ter.initialize(World.WIDTH, World.HEIGHT + HUDHEIGHT);
         this.ter = ter;
@@ -68,38 +70,45 @@ public class Game {
                     StdDraw.show();
 
                     StringBuilder seedStr = new StringBuilder();
-                    boolean input = true;
+                    boolean enteringSeed = true;
 
-                    while (input) {
-                        if (!StdDraw.hasNextKeyTyped()) continue;
+                    while (enteringSeed) {
+                        if (!StdDraw.hasNextKeyTyped()) {
+                            StdDraw.pause(10);  // Small pause to prevent tight loop
+                            continue;
+                        }
+
                         char c = Character.toUpperCase(StdDraw.nextKeyTyped());
 
                         if (c == 'S') {
-                            break;
+                            if (seedStr.length() > 0) {
+                                enteringSeed = false;
+                                break;
+                            }
+                            // If seed is empty, ignore 'S' and continue waiting for input
+                            continue;
                         }
 
                         if (Character.isDigit(c)) {
                             seedStr.append(c);
+
+                            // Update display after each digit
+                            StdDraw.clear(Color.BLACK);
+                            StdDraw.setPenColor(Color.WHITE);
+
+                            StdDraw.setFont(TITLE);
+                            StdDraw.text(World.WIDTH / 2.0, World.HEIGHT - 10, "Save the Josh");
+
+                            StdDraw.setFont(MENUSEED);
+                            StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 4, "Enter your game seed:");
+                            StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, seedStr.toString());
+                            StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 4, "Press S when done");
+
+                            StdDraw.show();
                         }
-
-                        StdDraw.clear(Color.BLACK);
-                        StdDraw.setPenColor(Color.WHITE);
-
-                        StdDraw.setFont(TITLE);
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT - 10, "Save the Josh");
-
-                        StdDraw.setFont(MENUSEED);
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 + 4, "Enter your game seed:");
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, seedStr.toString());
-                        StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0 - 4, "Press S when done");
-
-                        StdDraw.show();
                     }
 
-                    long seed = 0;
-                    if (!seedStr.isEmpty()) {
-                        seed = Long.parseLong(seedStr.toString());
-                    }
+                    long seed = Long.parseLong(seedStr.toString());
 
                     //Create world
                     World world = new World(seed);
@@ -153,13 +162,7 @@ public class Game {
 
                 }
 
-                // Still needs to be implemented in Task 4 @Rishbha
                 else if (chr == 'L') {
-//                    StdDraw.clear(Color.BLACK);
-//                    StdDraw.setPenColor(Color.WHITE);
-//                    StdDraw.setFont(MENUTEXT);
-//                    StdDraw.text(World.WIDTH / 2.0, World.HEIGHT / 2.0, "Load Game");
-//                    StdDraw.show();
                     createWorld(SaveLoad.load());
                 }
 
@@ -177,7 +180,10 @@ public class Game {
     }
 
     public void interactivity(User user, TERenderer ter) throws FileNotFoundException {
+        GameAudio.stopMusic();  // Stop menu music
+        GameAudio.playExplorationMusic();
         long lastEnemyUpdate = System.currentTimeMillis();
+        char lastChar = '\0';  // Track the previous character
         while (true) {
             long currentTime = System.currentTimeMillis();
 
@@ -197,14 +203,26 @@ public class Game {
             int x = user.x;
             int y = user.y;
 
-            if (c == 'Q') {
+            if (c == 'Q' && lastChar == ':') {
                 SaveLoad.save(new GameState(user, enemies, collectibles, world.seed));
                 System.exit(0);
             }
-            if (c == 'W') y++;
-            if (c == 'S') y--;
-            if (c == 'A') x--;
-            if (c == 'D') x++;
+            if (c == 'W') {
+                y++;
+                GameAudio.playWalkSound();
+            }
+            if (c == 'S') {
+                y--;
+                GameAudio.playWalkSound();
+            }
+            if (c == 'A') {
+                x--;
+                GameAudio.playWalkSound();
+            }
+            if (c == 'D') {
+                x++;
+                GameAudio.playWalkSound();
+            }
 
             Point playerPos = new Point(x, y);
 
@@ -215,6 +233,7 @@ public class Game {
 
             if (worldTiles[x][y] == Tileset.ENEMY) {
                 user.health -= 1;
+                GameAudio.playHitSound();
                 if (user.health == 0) {
                     System.exit(0);//check this
                 }
@@ -225,12 +244,15 @@ public class Game {
                 user.health += currColl.health;
                 collectibles.remove(playerPos);
                 worldTiles[x][y] = Tileset.FLOOR;
+                GameAudio.playCollectSound();
             }
 
             user.moveAroundMap(x, y, worldTiles);
 
             ter.renderFrame(worldTiles);
             drawHUD(user, ter);
+
+            lastChar = c;  // Update lastChar for next iteration
         }
     }
     public void drawHUD(User user, TERenderer ter) {
@@ -256,6 +278,7 @@ public class Game {
         }
         // Generate enemies
         this.enemies = gameState.enemies;
+        this.countEnemies = enemies.length;
         for (Enemy en :enemies ) {
             worldTiles[en.x][en.y] = Tileset.ENEMY;
         }
