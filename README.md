@@ -1,3 +1,5 @@
+![Game Demo](../game-demo.gif)
+
 # Save the Josh - Pac-Man Style Game
 
 A Java-based Pac-Man style adventure game featuring procedurally generated worlds, enemy AI, collectibles, and immersive audio.
