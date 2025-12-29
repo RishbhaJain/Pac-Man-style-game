@@ -1,4 +1,4 @@
-![Game Demo](../game-demo.gif)
+![Game Demo](game-demo.gif)
 
 # Save the Josh - Pac-Man Style Game
 
